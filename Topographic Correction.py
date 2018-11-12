@@ -47,11 +47,6 @@ for d in raster_list_dem:
     band2=gdal.Open(d)
     dataTopo.append(band2.GetRasterBand(1).ReadAsArray())
 
-#Load data raster sample area
-pathsample='Folder name' # consist of sample area based on visual digitization
-sampledata=gdal.Open(pathsample)
-sample=np.array(sampledata.GetRasterBand(1).ReadAsArray())
-
 def year_date():
     year_file=data['DATE_ACQUIRED']
     date_file=data['SCENE_CENTER_TIME']
@@ -156,7 +151,7 @@ reflectance_f= {filename[0][:-2]+'B1':reflectance_band1, filename[0][:-2]+'B2':r
 
 # Training sample to avoid the cloud
 NDVI=numexpr.evaluate("(reflectance_band5 - reflectance_band4) / (reflectance_band5 + reflectance_band4)")
-sampleArea= numexpr.evaluate("(NDVI >0.5) & (sample==True)")
+sampleArea= numexpr.evaluate("(NDVI >0.5) & (dataTopo[1] >= 18)")
 area_true= sampleArea.nonzero()
 a_true=area_true[0]
 b_true=area_true[1]
@@ -177,7 +172,7 @@ for item in IC_final:
     proj = band.GetProjection()
     shape = my_dict[filename[0][:-2]+'B1'].shape
     driver = gdal.GetDriverByName("GTiff")
-    dst_ds = driver.Create("Folder Output" + "topo.TIF", shape[1], shape[0], 1, gdal.GDT_Float64)
+    dst_ds = driver.Create("Folder Output" + "topo.TIF", shape[1], shape[0], 1, gdal.GDT_Float32)
     dst_ds.SetGeoTransform(geo)
     dst_ds.SetProjection(proj)
     ds=dst_ds.GetRasterBand(1)
